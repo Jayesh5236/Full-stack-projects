@@ -21,12 +21,11 @@ let taskSchema = new mongoose.Schema({
         required: true,
       },
       reminders: {
-        type: [Date],
+        type: [Date],   //in array bcz date of remainders will be multiple
         required: true,
       },
     },
   ],
 });
 
-
-export default mongoose.model ("TaskModel" ,taskSchema , "tasks")
+export default mongoose.model("TaskModel", taskSchema, "tasks");

@@ -14,7 +14,7 @@ function userRegistrationValidation() {
       .isLength({ min: 8 }),
     body("confirmPassword").custom((value, { req }) => {
       if (value !== req.body.password) {
-        throw new Error("Passowrd confirmation does not match Password");
+        throw new Error("Password confirmation does not match Password");
       }
       return true; // indicates the success of the validation
     }),
@@ -22,7 +22,7 @@ function userRegistrationValidation() {
 }
 
 function errorMiddleware(req, res, next) {
-  const errors = validationResult(req);
+  const errors = validationResult(req);     //error to be returned in an array
   if (errors.isEmpty()) {
     return next();
   }

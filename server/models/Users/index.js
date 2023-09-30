@@ -7,8 +7,6 @@ tasks
 
 */
 
-
-
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
@@ -27,16 +25,16 @@ const userSchema = new mongoose.Schema({
   age: {
     type: Number,
     min: 13,
-    max : 130
+    max: 130,
   },
   address: {
     type: String,
   },
   phone: {
     type: String,
-    unique : true
+    unique: true,
   },
-  userVerifyToken: {
+  userVerifyToken: {      // token is to be stored here 
     email: {
       type: String,
     },
@@ -44,24 +42,29 @@ const userSchema = new mongoose.Schema({
       type: String,
     },
   },
-  userVerified: {
+  userVerified: {   //user verification
     email: {
       type: Boolean,
       default: false,
     },
     phone: {
-      type: Boolean,
+      type: Boolean,      //if verified it will be true
       default: false,
     },
   },
   role: {
-   type: String,
-   default : "user"
+    type: String,
+    default: "user",
   },
-  tasks:{
-    type : mongoose.Schema.Types.ObjectId,
-    ref : "TaskModel"
-  }
+  tasks: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "TaskModel",
+  },
 });
 
-export default mongoose.model("userModel" , userSchema , "users")
+export default mongoose.model("userModel", userSchema, "users");
+/*
+1.import name 
+2.function 
+3.mongodb folder name 
+*/ 

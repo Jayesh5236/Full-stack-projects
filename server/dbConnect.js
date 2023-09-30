@@ -1,11 +1,12 @@
 import mongoose from "mongoose";
+import config from "config";
 
 async function dbConnect() {
   try {
-    await mongoose.connect(
-      "mongodb+srv://jayesh6221:jayesh5620@myclusterj.k9ase8m.mongodb.net/contact"
-    );
-    console.log("Mongo Db Is Now Connected");
+    let dbString = config.get("DB_STRING");
+
+    await mongoose.connect(dbString);
+    console.log("Mongo DB is connected");
   } catch (error) {
     console.log(error);
   }

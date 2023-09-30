@@ -1,6 +1,6 @@
 {
-    "PORT": 5000,
-    "URL": "http://192.168.0.217:5000",
-    "DB_STRING" : "mongodb+srv://haider:MVJMdNY61IlXbsb2@haider101.wiiryma.mongodb.net/tasky",
-    "PRIVATE_KEY": "THS"
+  "PORT": 5000,
+  "URL": "http://192.168.0.217:5000",
+  "DB_STRING": "mongodb+srv://jayesh6221:jayesh5620@myclusterj.k9ase8m.mongodb.net/task-manager",
+  "PRIVATE_KEY": "THS"
 }
