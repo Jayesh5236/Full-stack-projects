@@ -7,7 +7,6 @@ import {
 import taskModel from "../../models/Tasks/index.js";
 import sendEmail from "../../utils/sendEmail.js";
 
-
 const router = express.Router();
 
 /*
@@ -31,12 +30,12 @@ router.post(
 
       let { taskName, deadline } = req.body;
 
-      let presentTime = new Date();     //utc format
-    //   console.log(presentTime);
+      let presentTime = new Date(); //utc format
+      //   console.log(presentTime);
 
-      let deadlineUtc = new Date(deadline);  //from frontend 
+      let deadlineUtc = new Date(deadline); //from frontend
 
-      let reminders = [];       //pushed here 
+      let reminders = []; //pushed here
 
       if (presentTime > deadline) {
         return res.status(400).json({ error: "Deadline is In the past" });
@@ -45,9 +44,9 @@ router.post(
 
       let difference = deadlineUtc - presentTime;
 
-      let mins = difference / (1000 * 60);      //min conversion
+      let mins = difference / (1000 * 60); //min conversion
 
-      let days = difference / (1000 * 60 * 60 * 24);        //day conversion
+      let days = difference / (1000 * 60 * 60 * 24); //day conversion
 
       if (mins > 5 || days > 30) {
         return res.status(400).json({
@@ -75,6 +74,12 @@ router.post(
       await tasks.save();
 
       res.status(200).json({ success: "New TAsk Created Successfully" });
+
+      await sendEmail({
+        to: user.email,
+        subject: " Verify New User ",
+        body: `Please click on this link to verify the user - http://localhost:5000/api/user/verify/email/${user.userVerifyToken.email}`,
+      });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error });
