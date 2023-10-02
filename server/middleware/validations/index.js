@@ -21,12 +21,23 @@ function userRegistrationValidation() {
   ];
 }
 
+function taskCreationValidationRules() {
+  return [
+    body("taskName", "Please enter a valid task name").isString(),
+    body("deadline", "PLease enter a proper deadline").notEmpty(),
+  ];
+}
+
 function errorMiddleware(req, res, next) {
-  const errors = validationResult(req);     //error to be returned in an array
+  const errors = validationResult(req); //error to be returned in an array
   if (errors.isEmpty()) {
     return next();
   }
   return res.status(400).json({ error: errors.array() });
 }
 
-export { userRegistrationValidation, errorMiddleware };
+export {
+  userRegistrationValidation,
+  taskCreationValidationRules,
+  errorMiddleware,
+};
