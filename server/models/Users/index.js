@@ -34,7 +34,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     unique: true,
   },
-  userVerifyToken: {      // token is to be stored here 
+  userVerifyToken: {
+    // token is to be stored here
     email: {
       type: String,
     },
@@ -42,13 +43,14 @@ const userSchema = new mongoose.Schema({
       type: String,
     },
   },
-  userVerified: {   //user verification
+  userVerified: {
+    //user verification
     email: {
       type: Boolean,
       default: false,
     },
     phone: {
-      type: Boolean,      //if verified it will be true
+      type: Boolean, //if verified it will be true
       default: false,
     },
   },
@@ -67,4 +69,4 @@ export default mongoose.model("userModel", userSchema, "users");
 1.import name 
 2.function 
 3.mongodb folder name 
-*/ 
+*/

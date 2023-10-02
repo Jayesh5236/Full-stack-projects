@@ -1,9 +1,8 @@
 import express from "express";
 import "./dbConnect.js";
 import config from "config";
-import taskRouter from "./controller/tasks/index.js"
-import userRouter from "./controller/user/index.js"
-
+import taskRouter from "./controller/tasks/index.js";
+import userRouter from "./controller/user/index.js";
 
 const app = express();
 
@@ -22,7 +21,6 @@ app.listen(port, () => {
   console.log(`Server Started at ${port}`);
 });
 
-
 /*
 {
   "fname":"Jayesh",
@@ -31,7 +29,5 @@ app.listen(port, () => {
   "age":24,
   "phone":9586330289
 }
-*/ 
+*/
 
-//    "success": "User Login SuccessFully",
-// "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpAZ21haWwuY29tIiwiX2lkIjoiNjUxODI2MDBjNDEzMDIwNTQwZmRmODMyIiwiaWF0IjoxNjk2MjM3MzAxLCJleHAiOjE2OTY0OTY1MDF9.OsHafoLzkbS4zi1Medm-cOvjQi93UdfK2fj1M2rU-bg"

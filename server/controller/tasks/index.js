@@ -5,7 +5,22 @@ import {
   errorMiddleware,
 } from "../../middleware/validations/index.js";
 import taskModel from "../../models/Tasks/index.js";
+import Agenda from "agenda";
+import config from "config";
+
 import sendEmail from "../../utils/sendEmail.js";
+
+const agenda = new Agenda({
+  db: { address: config.get("DB_STRING"), collection: "agenda" },
+});
+
+const startAgenda = async () => {
+  await agenda.start();
+  console.log(`Agenda Scheduler Started`);
+};
+
+startAgenda();
+//agenda started
 
 const router = express.Router();
 
@@ -55,11 +70,16 @@ router.post(
         });
       }
 
-      let reminders1 = new Date(+presentTime - difference / 4);
-      let reminders2 = new Date(+presentTime - difference / 2);
-      let reminders3 = new Date(+presentTime - difference / (4 / 3));
+      let reminders1 = new Date(+presentTime + difference / 4);
+      let reminders2 = new Date(+presentTime + difference / 2);
+      let reminders3 = new Date(+presentTime + difference / (4 / 3));
 
-      reminders.push(reminders1, reminders2, reminders3, deadlineUtc);
+      reminders.push(
+        { jobTime: reminders1, jobId: "1" },
+        { jobTime: reminders2, jobId: "2" },
+        { jobTime: reminders3, jobId: "3" },
+        { jobTime: deadlineUtc, jobId: "4" }
+      );
 
       let taskData = {
         taskName,
@@ -67,13 +87,26 @@ router.post(
         reminders,
       };
 
-      let tasks = await taskModel.findOne({ user: payload._id });
+      let tasks = await taskModel
+        .findOne({ user: payload._id })
+        .populate("user", "fname");
 
       tasks.tasks.push(taskData);
 
       await tasks.save();
 
-      res.status(200).json({ success: "New TAsk Created Successfully" });
+      let fname = tasks.user.fname;
+
+      let job = await agenda.schedule(reminders1, "sendReminder", {
+        reminders: true,
+        dateTime: reminders1,
+        fname: fname,
+        email: req.payload.email,
+        taskName: taskName,
+      });
+      console.log(job.attrs._id);
+
+      res.status(200).json({ success: "New Task Created Successfully" });
 
       await sendEmail({
         to: user.email,
@@ -86,5 +119,19 @@ router.post(
     }
   }
 );
+
+agenda.define("sendReminder", async (job) => {
+  job.attrs.data.reminder
+    ? sendEmail({
+        to: job.attrs.data.email,
+        subject: "Reminder",
+        body: `Hi,${job.attrs.data.fname}\nthis is your number ${job.attrs.data.index} reminder for the task ${job.attrs.data.taskName}`,
+      })
+    : sendEmail({
+        to: job.attrs.data.email,
+        subject: "Deadline over",
+        body: `Hi,${job.attrs.data.fname}\nthis is your mail to let you know that your deadline is finished for the task ${job.attrs.data.taskName}`,
+      });
+});
 
 export default router;

@@ -21,7 +21,7 @@ let taskSchema = new mongoose.Schema({
         required: true,
       },
       reminders: {
-        type: [Date],   //in array bcz date of remainders will be multiple
+        type: [Date], //in array bcz date of remainders will be multiple
         required: true,
       },
     },
