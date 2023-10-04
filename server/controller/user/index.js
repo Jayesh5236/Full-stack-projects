@@ -18,43 +18,58 @@ const router = express.Router();
     Access Type : Public
 */
 
-router.post(
-  "/register",
-  userRegistrationValidation(),
-  errorMiddleware,
-  async (req, res) => {
-    try {
-      const emailFound = await Users.findOne({ email: req.body.email });
-      if (emailFound) {
-        return res.status(409).json({ error: "User Already Registered" });
-      }
+router.post("/register", async (req, res) => {
+  try {
+    const { fname, email, password, age, address, phone } = req.body;
 
-      const phoneFound = await Users.findOne({ phone: req.body.phone });
-      if (phoneFound) {
-        return res.status(409).json({ error: "phone Already Registered" });
-      }
+    // Check if the email or phone is already registered
+    const emailFound = await Users.findOne({ email });
+    const phoneFound = await Users.findOne({ phone });
 
-      req.body.password = await bcrypt.hash(req.body.password, 12);
-
-      const userObj = new Users(req.body);
-
-      userObj.userVerifyToken.email = randomString(12);
-      userObj.userVerifyToken.phone = randomString(12);
-
-      const task = new Tasks();
-      task.user = userObj._id; //reference
-      userObj.tasks = task._id;
-
-      await userObj.save();
-      await task.save();
-
-      res.status(200).json({ success: "User Succesfully added to DB" });
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({ error: "Internal Server Error" });
+    if (emailFound) {
+      return res.status(409).json({ error: "Email Already Registered" });
     }
+
+    if (phoneFound) {
+      return res.status(409).json({ error: "Phone Number Already Registered" });
+    }
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Generate verification tokens
+    const emailVerifyToken = randomString(12);
+    const phoneVerifyToken = randomString(12);
+
+    // Create a new user
+    const user = new Users({
+      fname,
+      email,
+      password: hashedPassword,
+      age,
+      address,
+      phone,
+      userVerifyToken: {
+        email: emailVerifyToken,
+        phone: phoneVerifyToken,
+      },
+    });
+
+    // Create a task for the user
+    const task = new Tasks();
+    task.user = user._id;
+    user.tasks = task._id;
+
+    await user.save();
+    await task.save();
+
+    res.status(200).json({ success: "User Registered Successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
-);
+});
+
 /*
     API: Login User
     Method : POST
@@ -65,9 +80,10 @@ router.post(
 router.post("/login", async (req, res) => {
   try {
     const userFound = await Users.findOne({ email: req.body.email });
-
     if (!userFound) {
-      return res.status(404).json({ error: "User mail has not been Found" });
+      return res
+        .status(404)
+        .json({ error: "User mail has not been found/ does not exist" });
     }
 
     const isValid = await bcrypt.compare(req.body.password, userFound.password);
@@ -75,7 +91,7 @@ router.post("/login", async (req, res) => {
     if (!isValid) {
       return res
         .status(401)
-        .json({ error: "Invalid Credentials -Password is not matching" });
+        .json({ error: "Invalid Credentials - Password is Invalid" });
     }
 
     let payload = { email: userFound.email, _id: userFound._id };
@@ -85,36 +101,47 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Email is not verified" });
     }
 
-    res.status(200).json({ success: "User Login SuccessFully", token });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-router.get("/verify/email/:emailToken", async (req, res) => {
-  try {
-    let emailToken = req.params.emailToken;
-
-    let userFound = await Users.findOne({
-      "userVerifyToken.email": emailToken,
-    }); //user finding
-
-    if (userFound.userVerified.email == true) {
-      return res.status(200).json({ message: "User is already verified" });
-    }
-
-    userFound.userVerified.email = true;
-    await userFound.save();
-
-    return res
-      .status(200)
-      .json({ success: "User email verified successfully" });
+    res.status(200).json({ success: "User Login Successfully", token });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error });
   }
 });
-//token is for to verify that user is logged in or not and it is like authentication of user on application
 
+router.get("/verify/email/:emailToken", async (req, res) => {
+  try {
+    const emailToken = req.params.emailToken;
+
+    // Find the user by email token
+    const userFound = await Users.findOne({
+      "userVerifyToken.email": emailToken,
+    });
+
+    if (userFound.userVerified.email == true) {
+      return res.status(200).json({ success: "User is already registered" });
+    }
+
+    // Mark the email as verified
+    userFound.userVerified.email = true;
+
+    await userFound.save();
+
+    res.status(200).json({ success: "User is now verified" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 export default router;
+
+/*
+{
+    "fname": "densi",
+    "email": "densi@gmail.com",
+    "password": "densi5620",
+    "age":22,
+    "address":"adajan",
+    "phone":"123456789"
+
+}
+*/

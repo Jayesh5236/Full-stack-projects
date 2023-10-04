@@ -57,12 +57,10 @@ router.post(
 
       let days = difference / (1000 * 60 * 60 * 24);
       if (mins < 5 || days > 30) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "Invalid date entered, Deadline should be more than 5 mins and less than 30 days",
-          });
+        return res.status(400).json({
+          error:
+            "Invalid date entered, Deadline should be more than 5 mins and less than 30 days",
+        });
       }
 
       let reminder1 = new Date(+presentTime + difference / 4);
@@ -153,6 +151,27 @@ async function scheduleJobs(reminders, fname, email, taskName) {
     Access Type : Private
 */
 
+router.get("/tasks", authMiddleware, async (req, res) => {
+  try {
+    const payload = req.payload;
+
+    // Find all tasks associated with the logged-in user
+    const tasks = await taskModel
+      .findOne({ user: payload._id })
+      .populate("user", "fname")
+      .select("tasks");
+
+    if (!tasks) {
+      return res.status(404).json({ error: "No tasks found" });
+    }
+
+    res.status(200).json({ tasks });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 /*
     API : get specific Tasks
     Method : GET
@@ -160,6 +179,42 @@ async function scheduleJobs(reminders, fname, email, taskName) {
     Access Type : Private
     router.get("/:task_id",....)
 */
+/*
+    API: Get Specific Task
+    Method: GET
+    Desc: Get a specific task from the logged-in user
+    Access Type: Private
+*/
+
+router.get("/tasks/:taskId", authMiddleware, async (req, res) => {
+  try {
+    const payload = req.payload;
+    const { taskId } = req.params;
+
+    // Find the logged-in user's tasks
+    const tasks = await taskModel
+      .findOne({ user: payload._id })
+      .select("tasks");
+
+    if (!tasks) {
+      return res.status(404).json({ error: "No tasks found" });
+    }
+
+    // Find the specific task by taskId
+    const specificTask = tasks.tasks.find(
+      (task) => task._id.toString() === taskId
+    );
+
+    if (!specificTask) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    res.status(200).json({ task: specificTask });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 /*
     API : delete specific Tasks
@@ -174,7 +229,7 @@ router.post("/delete/:taskId", authMiddleware, async (req, res) => {
 
     const { taskId } = req.params;
 
-    const deletedTask = await Tasks.findBy
+    // const deletedTask = await Tasks
 
     // let agendaList = await agenda.jobs({ name: "sendReminder"  })
     // agendaList.forEach((ele, i) => {
@@ -198,5 +253,54 @@ router.post("/delete/:taskId", authMiddleware, async (req, res) => {
     Access Type : Private
     can edit the taskName and the deadline and the completed Status
 */
+/*
+    API: Edit Task
+    Method: PUT
+    Desc: Edit a specific task and reschedule the jobs
+    Access Type: Private
+    Can edit the taskName, deadline, and completed status
+*/
+
+router.put("/:taskId", authMiddleware, async (req, res) => {
+  try {
+    const payload = req.payload;
+    const { taskId } = req.params;
+    const { taskName, deadline, completed } = req.body;
+
+    // Find the logged-in user's tasks
+    const tasks = await taskModel
+      .findOne({ user: payload._id })
+      .select("tasks");
+
+    if (!tasks) {
+      return res.status(404).json({ error: "No tasks found" });
+    }
+
+    // Find the specific task by taskId
+    const specificTask = tasks.tasks.find(
+      (task) => task._id.toString() === taskId
+    );
+
+    if (!specificTask) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    // Update task details
+    specificTask.taskName = taskName;
+    specificTask.deadline = deadline;
+    specificTask.completed = completed;
+
+    // Save the updated task
+    await tasks.save();
+
+    // Reschedule jobs for reminders
+    // Implement your rescheduling logic here
+
+    res.status(200).json({ success: "Task updated successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 export default router;
